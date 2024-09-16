@@ -93,9 +93,14 @@ def plot_forecasts(plot_data, stratum='states', start=0, stride=5, horizon=None)
     )
 
 
-def plot_importance_lgbm(model, horizon=0, max_features=None, y_size=8):
-    # Sample data (replace these with actual data)
-    feature_importances = model.model.estimators_[horizon].feature_importances_
+def plot_importance_lgbm(model, age_group='00+', horizon=0, max_features=None, y_size=8):
+    if age_group == '00+':
+        age_group = 'DE'
+    horizon = horizon -1
+    label = f'icosari-sari-{age_group}_target_hrz{horizon}'
+    estimator = model.model.estimators_[model.lagged_label_names.index(label)]
+    
+    feature_importances = estimator.feature_importances_
     feature_names = model.lagged_feature_names
 
     # Create a DataFrame
@@ -114,7 +119,7 @@ def plot_importance_lgbm(model, horizon=0, max_features=None, y_size=8):
     plt.barh(feature_importance_df['Feature'], feature_importance_df['Importance'], color='skyblue')
     plt.xlabel('Importance')
     plt.ylabel('Feature')
-    plt.title('Feature Importance')
+    plt.title(f'Feature Importance\n{age_group}, horizon: {horizon + 1}')
     plt.gca().invert_yaxis()  # Invert y-axis to have the most important feature at the top
     plt.show()
     
