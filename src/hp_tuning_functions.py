@@ -177,7 +177,7 @@ def compute_validation_score(model, targets_train, targets_validation, covariate
     return score if score != np.nan else float("inf")
 
 
-def get_best_parameters(project, model, test_year=None, use_covariates=None, lags=None):
+def get_best_parameters(project, model, test_year=None, use_covariates=None, multiple_series=None, lags=None):
     api = wandb.Api()
 
     # Fetch all runs from a specific project
@@ -190,6 +190,7 @@ def get_best_parameters(project, model, test_year=None, use_covariates=None, lag
                 filters={"$and": [{"config.model": model}, 
                                   {"config.test_year": test_year} if (test_year is not None) else None, 
                                   {"config.use_covariates": use_covariates} if (use_covariates is not None) else None,
+                                  {"config.multiple_series": multiple_series} if (multiple_series is not None) else None,
                                   {"config.lags": lags} if (lags is not None) else None
                                  ]})
 
