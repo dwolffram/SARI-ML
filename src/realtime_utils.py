@@ -5,6 +5,23 @@ from darts import TimeSeries, concatenate
 import matplotlib.pyplot as plt
 
 
+def load_latest_series(indicator='sari'):
+    source = SOURCE_DICT[indicator]
+    
+    ts = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/data/{source}/{indicator}/latest_data-{source}-{indicator}.csv')
+        
+    ts = ts[ts.location == 'DE']
+        
+    ts = TimeSeries.from_group_dataframe(ts, group_cols=['age_group'], 
+                                             time_col='date', value_cols='value', 
+                                             freq='7D', fillna_value=0)
+    ts = concatenate(ts, axis=1)
+    ts = ts.with_columns_renamed(ts.static_covariates.age_group.index, f'{source}-{indicator}-' + ts.static_covariates.age_group)
+    ts = ts.with_columns_renamed(f'{source}-{indicator}-00+', f'{source}-{indicator}-DE')
+    
+    return ts
+
+
 def load_target_series(indicator='sari', as_of=None):
     source = SOURCE_DICT[indicator]
     
@@ -101,3 +118,21 @@ def get_preceding_thursday(date):
     '''
     date = pd.Timestamp(date) # to also accept dates given as strings
     return date - pd.Timedelta(days=(date.weekday() - 3)%7) # weekday of Thursday is 3
+
+
+def load_realtime_training_data():
+    # load sari data
+    sari_rt_start = pd.Timestamp('2023-09-24')
+    target_sari = load_target_series('sari')
+    latest_sari = load_latest_series('sari')
+    ts1 = latest_sari.drop_after(sari_rt_start)
+    ts2 = target_sari[sari_rt_start :]
+    ts_sari = ts1.concatenate(ts2)
+    
+    # load are data
+    target_are = load_target_series('are')
+    latest_are = load_latest_series('are')
+    t3 = latest_are.drop_after(target_are.start_time())
+    ts_are = concatenate([latest_are.drop_after(target_are.start_time()), target_are])
+    
+    return ts_sari, ts_are
