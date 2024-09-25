@@ -43,7 +43,7 @@ def prepare_plot_data(df, y):
     df_plot = df.pivot(index = ['location', 'age_group', 'forecast_date', 'target_end_date', 'type', 'horizon'],
                        columns = 'quantile', values = 'value')
     
-    df_plot.columns = ['quantile_' + q for q in df_plot.columns]
+    df_plot.columns = ['quantile_' + str(q) for q in df_plot.columns]
     df_plot = df_plot.reset_index()
     
     y = reshape_truth(y)

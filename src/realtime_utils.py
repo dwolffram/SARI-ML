@@ -1,26 +1,42 @@
+from config import *
 import pandas as pd
+import numpy as np
 from darts import TimeSeries, concatenate
 import matplotlib.pyplot as plt
 
 
-def load_target_series():
-    target = pd.read_csv('https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/main/data/icosari/sari/target-icosari-sari.csv')
-
+def load_target_series(indicator='sari', as_of=None):
+    source = SOURCE_DICT[indicator]
+    
+    if as_of is None:
+        target = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/main/data/{source}/{indicator}/target-{source}-{indicator}.csv')
+    else:
+        rt = load_rt(indicator)
+        target = target_as_of(rt, as_of)
+        
+    target = target[target.location == 'DE']
+        
     ts_target = TimeSeries.from_group_dataframe(target, group_cols=['age_group'], 
                                              time_col='date', value_cols='value', 
                                              freq='7D', fillna_value=0)
     ts_target = concatenate(ts_target, axis=1)
-    ts_target = ts_target.with_columns_renamed(ts_target.static_covariates.age_group.index, 'icosari-sari-' + ts_target.static_covariates.age_group)
-    ts_target = ts_target.with_columns_renamed('icosari-sari-00+', 'icosari-sari-DE')
+    ts_target = ts_target.with_columns_renamed(ts_target.static_covariates.age_group.index, f'{source}-{indicator}-' + ts_target.static_covariates.age_group)
+    ts_target = ts_target.with_columns_renamed(f'{source}-{indicator}-00+', f'{source}-{indicator}-DE')
     
     return ts_target
 
 
-def load_nowcast(forecast_date):
-    filepath = f'../data/nowcasts/KIT-baseline/{forecast_date}-icosari-sari-KIT-baseline.csv'
+def load_nowcast(forecast_date, probabilistic=True, local=True):
+    if local:
+        filepath = f'../data/nowcasts/KIT-baseline/{forecast_date}-icosari-sari-KIT-baseline.csv'
+    else:
+        filepath = f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/submissions/icosari/sari/KIT-simple_nowcast/{forecast_date}-icosari-sari-KIT-simple_nowcast.csv'
     df = pd.read_csv(filepath)
     df = df[(df.type == 'quantile') & (df.horizon >= -3)]
     df = df.rename(columns={'target_end_date' : 'date'})
+    
+    if probabilistic==False:
+        df = df[df['quantile'] == 0.5]
     
     all_nowcasts = []
     for age in df.age_group.unique():
@@ -54,3 +70,34 @@ def make_target_paths(target_series, nowcast):
                    for i in range(nowcast.n_samples)]
     
     return target_list
+
+
+def load_rt(indicator='sari'):
+    source = SOURCE_DICT[indicator]
+    rt = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/data/{source}/{indicator}/reporting_triangle-{source}-{indicator}.csv',
+                 parse_dates=['date'])
+
+    return rt.loc[:, : 'value_4w']
+
+def set_last_n_values_to_nan(group):
+    for i in [1, 2, 3, 4]:  # Loop for value_1w, value_2w, ..., value_4w
+        group.loc[group.index[-i:], f'value_{i}w'] = np.nan
+    return group
+
+def target_as_of(rt, date):
+    date = pd.Timestamp(date)
+    rt_temp = rt[rt.date <= date]
+    
+    # in column 'value_1w' the last entry is set to nan, in column 'value_2w' the last two entries, etc.
+    rt_temp = rt_temp.groupby(['location', 'age_group']).apply(set_last_n_values_to_nan, include_groups=False).reset_index()
+    rt_temp['value'] = rt_temp[['value_0w', 'value_1w', 'value_2w', 'value_3w', 'value_4w']].sum(axis=1).astype(int)
+    
+    return rt_temp[['location', 'age_group', 'year', 'week', 'date', 'value']]
+
+
+def get_preceding_thursday(date):
+    '''
+    Returns the date of the preceding Thursday. If 'date' is itself a Thursday, 'date' is returned.
+    '''
+    date = pd.Timestamp(date) # to also accept dates given as strings
+    return date - pd.Timedelta(days=(date.weekday() - 3)%7) # weekday of Thursday is 3

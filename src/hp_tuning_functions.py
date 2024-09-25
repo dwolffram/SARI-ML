@@ -66,13 +66,13 @@ def create_validation_data(validation_chunks, start=0):
     return targets_train, targets_validation, covariates
 
 
-def get_validation_data(test_year, start=0): 
+def get_validation_data(test_year, sources=SOURCES, start=0): 
     
     if (test_year not in SEASON_DICT.keys()) or (test_year <= 2014):
         print("Error: invalid test_year.")
         return
     
-    ts = load_data(SOURCES)
+    ts = load_data(sources)
     ts = encode_static_covariates(ts, ordinal=False)
 
     chunks = get_cv_chunks(ts)
@@ -87,13 +87,13 @@ def get_validation_data(test_year, start=0):
     return targets_train, targets_validation, covariates
 
 
-def get_test_data(test_year): 
+def get_test_data(test_year, sources=SOURCES): 
 
     if (test_year not in SEASON_DICT.keys()) or (test_year <= 2014):
         print("Error: invalid test_year.")
         return 
 
-    ts = load_data(SOURCES)
+    ts = load_data(sources)
     ts = encode_static_covariates(ts, ordinal=False)
 
     chunks = get_cv_chunks(ts)

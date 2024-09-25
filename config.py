@@ -30,6 +30,11 @@ SOURCES = [
     'agi'
 ]
 
+SOURCE_DICT = {
+    'sari' : 'icosari',
+    'are' : 'agi'
+}
+
 QUANTILES = [0.025, 0.25, 0.5, 0.75, 0.975]
 
 METRIC = [mql for _ in QUANTILES]
