@@ -2,6 +2,7 @@ from config import *
 import pandas as pd
 import numpy as np
 from darts import TimeSeries, concatenate
+from darts.utils.ts_utils import retain_period_common_to_all
 import matplotlib.pyplot as plt
 
 
@@ -36,7 +37,7 @@ def load_target_series(indicator='sari', as_of=None):
     ts_target = TimeSeries.from_group_dataframe(target, group_cols=['age_group'], 
                                              time_col='date', value_cols='value', 
                                              freq='7D', fillna_value=0)
-    ts_target = concatenate(ts_target, axis=1)
+    ts_target = concatenate(retain_period_common_to_all(ts_target), axis=1) # all components start at the same time (SARI!)
     ts_target = ts_target.with_columns_renamed(ts_target.static_covariates.age_group.index, f'{source}-{indicator}-' + ts_target.static_covariates.age_group)
     ts_target = ts_target.with_columns_renamed(f'{source}-{indicator}-00+', f'{source}-{indicator}-DE')
     
@@ -122,17 +123,17 @@ def get_preceding_thursday(date):
 
 def load_realtime_training_data():
     # load sari data
-    sari_rt_start = pd.Timestamp('2023-09-24')
     target_sari = load_target_series('sari')
     latest_sari = load_latest_series('sari')
-    ts1 = latest_sari.drop_after(sari_rt_start)
-    ts2 = target_sari[sari_rt_start :]
-    ts_sari = ts1.concatenate(ts2)
+
+    ts_sari = concatenate([latest_sari.drop_after(target_sari.start_time()), 
+                           target_sari])
     
     # load are data
     target_are = load_target_series('are')
     latest_are = load_latest_series('are')
-    t3 = latest_are.drop_after(target_are.start_time())
-    ts_are = concatenate([latest_are.drop_after(target_are.start_time()), target_are])
+    
+    ts_are = concatenate([latest_are.drop_after(target_are.start_time()), 
+                          target_are])
     
     return ts_sari, ts_are
