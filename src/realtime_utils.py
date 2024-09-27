@@ -90,9 +90,9 @@ def make_target_paths(target_series, nowcast):
     return target_list
 
 
-def load_rt(indicator='sari'):
+def load_rt(indicator='sari', preprocessed=False):
     source = SOURCE_DICT[indicator]
-    rt = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/data/{source}/{indicator}/reporting_triangle-{source}-{indicator}.csv',
+    rt = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/data/{source}/{indicator}/reporting_triangle-{source}-{indicator}{"-preprocessed" if preprocessed else None}.csv',
                  parse_dates=['date'])
 
     return rt.loc[:, : 'value_4w']
