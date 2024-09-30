@@ -23,7 +23,7 @@ def load_latest_series(indicator='sari'):
     return ts
 
 
-def load_target_series(indicator='sari', as_of=None):
+def load_target_series(indicator='sari', as_of=None, age_group=None):
     source = SOURCE_DICT[indicator]
     
     if as_of is None:
@@ -33,6 +33,9 @@ def load_target_series(indicator='sari', as_of=None):
         target = target_as_of(rt, as_of)
         
     target = target[target.location == 'DE']
+    
+    if age_group is not None:
+        target = target[target.age_group == age_group]
         
     ts_target = TimeSeries.from_group_dataframe(target, group_cols=['age_group'], 
                                              time_col='date', value_cols='value', 
@@ -92,7 +95,7 @@ def make_target_paths(target_series, nowcast):
 
 def load_rt(indicator='sari', preprocessed=False):
     source = SOURCE_DICT[indicator]
-    rt = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/data/{source}/{indicator}/reporting_triangle-{source}-{indicator}{"-preprocessed" if preprocessed else None}.csv',
+    rt = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/data/{source}/{indicator}/reporting_triangle-{source}-{indicator}{"-preprocessed" if preprocessed else ""}.csv',
                  parse_dates=['date'])
 
     return rt.loc[:, : 'value_4w']
