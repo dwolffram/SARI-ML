@@ -177,7 +177,7 @@ def compute_validation_score(model, targets_train, targets_validation, covariate
     return score if score != np.nan else float("inf")
 
 
-def get_best_parameters(project, model, test_year=None, use_covariates=None, multiple_series=None, lags=None):
+def get_best_parameters(project, model, target_metric="WIS", test_year=None, use_covariates=None, multiple_series=None, lags=None):
     api = wandb.Api()
 
     # Fetch all runs from a specific project
@@ -199,11 +199,27 @@ def get_best_parameters(project, model, test_year=None, use_covariates=None, mul
     best_metric = float('inf') 
 
     for run in runs:
-        metric_value = run.summary.get("WIS")
+        metric_value = run.summary.get(target_metric)
         if metric_value is not None and metric_value < best_metric:  
             best_metric = metric_value
             best_run = run
             
-    print(f"WIS of best run: {best_metric}")
+    print(f"{target_metric} of best run: {best_metric}")
     
     return best_run.config
+
+
+def get_season_start(start_year):
+    return pd.to_datetime(Week(start_year, 40, system="iso").enddate())
+
+def get_season_end(start_year):
+    return pd.to_datetime(Week(start_year + 1, 39, system="iso").enddate())
+
+def train_validation_split(series, validation_year):
+    validation_end = get_season_end(validation_year)
+    train_end = get_season_end(validation_year - 1)
+
+    ts_validation = series[:validation_end]
+    ts_train = series[:train_end]
+    
+    return ts_train, ts_validation

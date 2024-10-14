@@ -35,7 +35,7 @@ SOURCE_DICT = {
     'are' : 'agi'
 }
 
-QUANTILES = [0.025, 0.25, 0.5, 0.75, 0.975]
+QUANTILES = [0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975]
 
 METRIC = [mql for _ in QUANTILES]
 METRIC_KWARGS = [{'q': q} for q in QUANTILES]
