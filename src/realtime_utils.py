@@ -1,4 +1,5 @@
 from config import *
+from src.load_data import *
 import pandas as pd
 import numpy as np
 from darts import TimeSeries, concatenate
@@ -55,6 +56,7 @@ def load_nowcast(forecast_date, probabilistic=True, local=True):
     df = pd.read_csv(filepath)
     df = df[(df.type == 'quantile') & (df.horizon >= -3)]
     df = df.rename(columns={'target_end_date' : 'date'})
+    df = df.sort_values(['location', 'age_group'], ignore_index=True)
     
     if probabilistic==False:
         df = df[df['quantile'] == 0.5]
@@ -140,3 +142,29 @@ def load_realtime_training_data():
                           target_are])
     
     return ts_sari, ts_are
+
+
+def compute_forecast(model, target_series, covariates, forecast_date, horizon, num_samples, vincentization=True, probabilistic_nowcast=True, local=False):
+    '''
+    For every sample path given by the nowcasted quantiles, a probabilistic forecast is computed.
+    These are then aggregated into one forecast by combining all predicted paths.
+    '''
+    ts_nowcast = load_nowcast(forecast_date, probabilistic_nowcast, local)
+    target_list = make_target_paths(target_series, ts_nowcast)
+    target_list = [encode_static_covariates(t, ordinal=False) for t in target_list]
+     
+    covariates = [covariates]*len(target_list) if covariates else None
+      
+    fct = model.predict(n=horizon, 
+                        series=target_list, 
+                        past_covariates=covariates, 
+                        num_samples=num_samples)
+    
+    if vincentization:
+        df = reshape_hfc(fct)
+        df = df.groupby(['location', 'age_group', 'forecast_date', 'target_end_date', 'horizon', 'type', 'quantile']).agg({'value': 'mean'}).reset_index()
+    else:
+        ts_forecast = concatenate(fct, axis='sample')
+        df = reshape_forecast(ts_forecast)
+        
+    return df
