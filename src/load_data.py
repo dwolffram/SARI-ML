@@ -374,3 +374,11 @@ def load_features(lag=8, multiple_series=False):
         ts_features = concatenate(ts_features, axis='component')
         
     return ts_features
+
+
+def add_features(covariates, lag=8):
+    ts_features = load_features(lag=lag)
+    cov = covariates.slice_intersect(ts_features) # features start a bit later because of rolling window
+    ts_features = ts_features.slice_intersect(cov) # features are longer because they cover the whole period until now
+    cov = concatenate([cov.with_static_covariates(None), ts_features], axis='component')
+    return cov
