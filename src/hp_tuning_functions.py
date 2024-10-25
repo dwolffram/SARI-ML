@@ -133,34 +133,63 @@ def get_test_data(test_year, sources=SOURCES):
     
 #     return score if score != np.nan else float("inf")
 
-def compute_validation_score(model, targets_train, targets_validation, covariates, 
-                             horizon, num_samples, metric, metric_kwargs, enable_optimization=True):
+# def compute_validation_score(model, targets_train, targets_validation, covariates, 
+#                              horizon, num_samples, metric, metric_kwargs, enable_optimization=True):
     
-    model.fit(targets_train, past_covariates=covariates)
+#     model.fit(targets_train, past_covariates=covariates)
+    
+#     if isinstance(targets_train, list):
+#         validation_start = targets_train[0].end_time() + targets_train[0].freq
+#     else:
+#         validation_start = targets_train.end_time() + targets_train.freq
+
+#     hfc = model.historical_forecasts(
+#         series=targets_validation,
+#         past_covariates=covariates,
+#         start=validation_start,
+#         forecast_horizon=horizon,
+#         stride=1,
+#         last_points_only=False,
+#         retrain=False,
+#         verbose=False,
+#         num_samples=num_samples,
+#         enable_optimization=enable_optimization
+#     )
+
+
+#     scores = model.backtest(
+#         series=targets_validation,
+#         past_covariates=covariates,
+#         historical_forecasts=hfc,
+#         start=validation_start,
+#         forecast_horizon=horizon,
+#         stride=1,
+#         last_points_only=False,
+#         retrain=False,
+#         verbose=False,
+#         num_samples=num_samples,
+#         metric=metric, 
+#         metric_kwargs=metric_kwargs
+#     )
+
+#     score = np.mean(scores)
+    
+#     return score if score != np.nan else float("inf")
+
+
+def compute_validation_score(model, targets_train, targets_validation, covariates, 
+                             horizon, num_samples, metric, metric_kwargs, enable_optimization=True, sample_weight=None):
+    
+    model.fit(targets_train, past_covariates=covariates, sample_weight=sample_weight)
     
     if isinstance(targets_train, list):
         validation_start = targets_train[0].end_time() + targets_train[0].freq
     else:
         validation_start = targets_train.end_time() + targets_train.freq
 
-    hfc = model.historical_forecasts(
-        series=targets_validation,
-        past_covariates=covariates,
-        start=validation_start,
-        forecast_horizon=horizon,
-        stride=1,
-        last_points_only=False,
-        retrain=False,
-        verbose=False,
-        num_samples=num_samples,
-        enable_optimization=enable_optimization
-    )
-
-
     scores = model.backtest(
         series=targets_validation,
         past_covariates=covariates,
-        historical_forecasts=hfc,
         start=validation_start,
         forecast_horizon=horizon,
         stride=1,
@@ -169,7 +198,8 @@ def compute_validation_score(model, targets_train, targets_validation, covariate
         verbose=False,
         num_samples=num_samples,
         metric=metric, 
-        metric_kwargs=metric_kwargs
+        metric_kwargs=metric_kwargs,
+        enable_optimization=True
     )
 
     score = np.mean(scores)
@@ -223,3 +253,22 @@ def train_validation_split(series, validation_year):
     ts_train = series[:train_end]
     
     return ts_train, ts_validation
+
+
+def get_custom_weights(targets):
+
+    len_before = len(targets[: get_season_end(2019)].time_index)
+
+    len_after = len(targets[get_season_start(2020) :].time_index)
+
+    weights = np.append(
+        np.linspace(0.5, 0.5, len_before),
+        np.linspace(0.5, 1, len_after)
+    )
+
+    ts_weights = TimeSeries.from_times_and_values(
+        times=targets.time_index,
+        values=weights
+    )
+    
+    return ts_weights
