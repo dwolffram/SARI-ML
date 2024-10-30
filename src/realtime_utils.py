@@ -48,13 +48,15 @@ def load_target_series(indicator='sari', as_of=None, age_group=None):
     return ts_target
 
 
-def load_nowcast(forecast_date, probabilistic=True, local=True):
+def load_nowcast(forecast_date, probabilistic=True, indicator='sari', local=True):
+    source = SOURCE_DICT[indicator]
+    
     if local:
-        filepath = f'../data/nowcasts/KIT-baseline/{forecast_date}-icosari-sari-KIT-baseline.csv'
+        filepath = f'{"../data/nowcasts/KIT-baseline" if indicator == "sari" else "../ARI/nowcasts/"}/{forecast_date}-{source}-{indicator}-KIT-baseline.csv'
     else:
-        filepath = f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/submissions/icosari/sari/KIT-simple_nowcast/{forecast_date}-icosari-sari-KIT-simple_nowcast.csv'
+        filepath = f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/submissions/{source}/{indicator}/KIT-simple_nowcast/{forecast_date}-{source}-{indicator}-KIT-simple_nowcast.csv'
     df = pd.read_csv(filepath)
-    df = df[(df.type == 'quantile') & (df.horizon >= -3)]
+    df = df[(df.location == 'DE') & (df.type == 'quantile') & (df.horizon >= -3)]
     df = df.rename(columns={'target_end_date' : 'date'})
     df = df.sort_values(['location', 'age_group'], ignore_index=True)
     
@@ -73,12 +75,12 @@ def load_nowcast(forecast_date, probabilistic=True, local=True):
 
         nowcast_age = concatenate(nowcast_age, axis='sample')
         nowcast_age.static_covariates.drop(columns=['quantile'], inplace=True, errors='ignore')
-        nowcast_age = nowcast_age.with_columns_renamed(nowcast_age.components, ['icosari-sari-' + age])
+        nowcast_age = nowcast_age.with_columns_renamed(nowcast_age.components, [f'{source}-{indicator}-' + age])
 
         all_nowcasts.append(nowcast_age)
         
     all_nowcasts = concatenate(all_nowcasts, axis='component')
-    all_nowcasts = all_nowcasts.with_columns_renamed('icosari-sari-00+', 'icosari-sari-DE')
+    all_nowcasts = all_nowcasts.with_columns_renamed(f'{source}-{indicator}-00+', f'{source}-{indicator}-DE')
     
     return all_nowcasts
 
@@ -149,7 +151,8 @@ def compute_forecast(model, target_series, covariates, forecast_date, horizon, n
     For every sample path given by the nowcasted quantiles, a probabilistic forecast is computed.
     These are then aggregated into one forecast by combining all predicted paths.
     '''
-    ts_nowcast = load_nowcast(forecast_date, probabilistic_nowcast, local)
+    indicator = target_series.components[0].split('-')[1]
+    ts_nowcast = load_nowcast(forecast_date, probabilistic_nowcast, indicator, local)
     target_list = make_target_paths(target_series, ts_nowcast)
     target_list = [encode_static_covariates(t, ordinal=False) for t in target_list]
      

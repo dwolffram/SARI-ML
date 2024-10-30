@@ -17,11 +17,14 @@ def reshape_truth(y):
     '''
     Reformat timeseries so prediciton bands can start at the last known value at each forecast date.
     '''
+    source = y.components[0].split('-')[0]
+    indicator = y.components[0].split('-')[1]
+    
     y = y.pd_dataframe()
     y = y.reset_index().melt(id_vars='date')
 
     # y['strata']   = y.component.apply(lambda x: x.split('-', 2)[-1].split('_')[0])
-    y['strata']   = y.component.apply(lambda x: x.replace('icosari-sari-', '').split('_')[0])
+    y['strata']   = y.component.apply(lambda x: x.replace(f'{source}-{indicator}-', '').split('_')[0])
     y[['location', 'age_group']] = y.apply(extract_info, axis=1)
 
     for q in ['quantile_0.025', 'quantile_0.25', 'quantile_0.5', 'quantile_0.75', 'quantile_0.975']:
@@ -94,10 +97,13 @@ def plot_forecasts(plot_data, stratum='states', start=0, stride=5, horizon=None)
 
 
 def plot_importance_lgbm(model, age_group='00+', horizon=0, max_features=None, y_size=8):
+    source = model.lagged_label_names[0].split('-')[0]
+    indicator = model.lagged_label_names[0].split('-')[1]
+
     if age_group == '00+':
         age_group = 'DE'
     horizon = horizon -1
-    label = f'icosari-sari-{age_group}_target_hrz{horizon}'
+    label = f'{source}-{indicator}-{age_group}_target_hrz{horizon}'
     estimator = model.model.estimators_[model.lagged_label_names.index(label)]
     
     feature_importances = estimator.feature_importances_

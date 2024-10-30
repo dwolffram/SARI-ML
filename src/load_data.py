@@ -173,8 +173,11 @@ def reshape_forecast(ts_forecast, nowcast=False, deterministic=False):
         df_temp = ts_forecast.quantiles_df(quantiles=QUANTILES)
         df_temp = df_temp.reset_index().melt(id_vars='date')
         df_temp['quantile'] = df_temp.component.apply(lambda x: x.split('_')[-1])
+        
+    source = ts_forecast.components[0].split('-')[0]
+    indicator = ts_forecast.components[0].split('-')[1]
     
-    df_temp['strata']   = df_temp.component.apply(lambda x: x.replace('icosari-sari-', '').split('_')[0])
+    df_temp['strata']   = df_temp.component.apply(lambda x: x.replace(f'{source}-{indicator}-', '').split('_')[0])
     df_temp[['location', 'age_group']] = df_temp.apply(extract_info, axis=1)
     
     df_temp['horizon'] = df_temp.date.rank(method='dense').astype(int)
