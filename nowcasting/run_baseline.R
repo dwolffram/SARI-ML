@@ -2,8 +2,9 @@
 # Author: Johannes Bracher, johannes.bracher@kit.edu
 
 # setwd("C:/Users/tm7202/Workspace/SARI-ML")
+# Sys.setlocale("LC_ALL", "C")
 
-Sys.setlocale("LC_ALL", "C")
+Sys.setlocale(category = "LC_TIME", locale = "en_US.UTF8")
 
 # Some code which is only needed when running this file individually
 run_individually <- TRUE
