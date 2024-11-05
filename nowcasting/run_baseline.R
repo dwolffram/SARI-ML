@@ -1,7 +1,7 @@
 # Apply the KIT-simple_nowcast baseline model to age-stratified data.
 # Author: Johannes Bracher, johannes.bracher@kit.edu
 
-setwd("C:/Users/tm7202/Workspace/SARI-ML")
+# setwd("C:/Users/tm7202/Workspace/SARI-ML")
 
 Sys.setlocale("LC_ALL", "C")
 
