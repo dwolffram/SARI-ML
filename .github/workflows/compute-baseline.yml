@@ -36,3 +36,10 @@ jobs:
           Compute baseline
         labels: |
           automated pr
+          automerge
+          
+    - name: Automerge check
+      uses: "pascalgn/automerge-action@v0.13.1"
+      env:
+        GITHUB_TOKEN: ${{ secrets.SARI_ML }}
+        MERGE_LABELS: "automerge"
