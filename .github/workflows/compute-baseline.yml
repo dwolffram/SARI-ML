@@ -4,6 +4,9 @@ on:
   # schedule:
   # - cron: "30 11,12,13,14 * * *"
   
+permissions:
+  contents: write  
+  
 jobs:
   compute-baseline:
     runs-on: ubuntu-latest
