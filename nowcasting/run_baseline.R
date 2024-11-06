@@ -207,13 +207,13 @@ for (data_source in data_sources) {
       #     title(paste0(disease, ",", loc, ", ", forecast_date))
       #   }
         
-      #   # store in all_nc
-      #   if(is.null(all_nc)){
-      #     all_nc <- nc
-      #   }else{
-      #     all_nc <- rbind(all_nc, nc)
-      #   }
-      # }
+        # store in all_nc
+        if(is.null(all_nc)){
+          all_nc <- nc
+        }else{
+          all_nc <- rbind(all_nc, nc)
+        }
+      }
       
       # write out:
       # write.csv(all_nc, file = paste0(path_repo, "/data/nowcasts/KIT-baseline/",
