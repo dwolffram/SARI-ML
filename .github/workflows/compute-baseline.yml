@@ -20,26 +20,44 @@ jobs:
       run: |
         Rscript ./nowcasting/run_baseline.R
 
-    - name: Create Pull Request
-      id: cpr
-      uses: peter-evans/create-pull-request@v7
-      with:
-        token: ${{ secrets.SARI_ML }}
-        commit-message: Update baseline
-        committer: GitHub <noreply@github.com>
-        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-        signoff: false
-        branch: compute-baseline
-        delete-branch: true
-        title: 'Compute baseline'
-        body: |
-          Compute baseline
-        labels: |
-          automated pr
-          automerge
+    # - name: Create Pull Request
+    #   id: cpr
+    #   uses: peter-evans/create-pull-request@v7
+    #   with:
+    #     token: ${{ secrets.SARI_ML }}
+    #     commit-message: Update baseline
+    #     committer: GitHub <noreply@github.com>
+    #     author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+    #     signoff: false
+    #     branch: compute-baseline
+    #     delete-branch: true
+    #     title: 'Compute baseline'
+    #     body: |
+    #       Compute baseline
+    #     labels: |
+    #       automated pr
+    #       automerge
           
-    - name: Automerge check
-      uses: "pascalgn/automerge-action@v0.16.4"
+    # - name: Automerge check
+    #   uses: "pascalgn/automerge-action@v0.16.4"
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.SARI_ML }}
+    #     MERGE_LABELS: "automerge"
+
+    - name: Commit files
       env:
-        GITHUB_TOKEN: ${{ secrets.SARI_ML }}
-        MERGE_LABELS: "automerge"
+        AUTH: ${{ secrets.SARI_ML }}
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        echo origin
+        git remote rm origin
+        git remote add origin https://${AUTH}@github.com/dwolffram/SARI-ML.git > /dev/null 2>&1
+        git pull origin main
+        git add --all
+        git commit --allow-empty -m "Compute baseline"
+        
+    - name: Push changes
+      run: |
+        git push --quiet --set-upstream origin HEAD:main
+        echo "pushed to github"
