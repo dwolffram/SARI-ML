@@ -53,7 +53,6 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        echo origin
         git remote rm origin
         git remote add origin https://${AUTH}@github.com/dwolffram/SARI-ML.git > /dev/null 2>&1
         git pull origin main
