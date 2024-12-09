@@ -128,22 +128,22 @@ def get_preceding_thursday(date):
     return date - pd.Timedelta(days=(date.weekday() - 3)%7) # weekday of Thursday is 3
 
 
-def load_realtime_training_data():
+def load_realtime_training_data(as_of=None):
     # load sari data
-    target_sari = load_target_series('sari')
+    target_sari = load_target_series('sari', as_of)
     latest_sari = load_latest_series('sari')
 
     ts_sari = concatenate([latest_sari.drop_after(target_sari.start_time()), 
                            target_sari])
     
     # load are data
-    target_are = load_target_series('are')
+    target_are = load_target_series('are', as_of)
     latest_are = load_latest_series('are')
     
     ts_are = concatenate([latest_are.drop_after(target_are.start_time()), 
                           target_are])
     
-    return ts_sari, ts_are
+    return ts_sari[:-4], ts_are[:-4] # only use complete data points
 
 
 def compute_forecast(model, target_series, covariates, forecast_date, horizon, num_samples, vincentization=True, probabilistic_nowcast=True, local=False):

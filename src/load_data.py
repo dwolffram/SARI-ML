@@ -268,8 +268,12 @@ def add_median(df):
     return pd.concat([df, df_median], ignore_index=True)
 
 
-def add_truth(df, disease='influenza'):
-    df_truth = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/main/data/survstat/{disease}/latest_data-survstat-{disease}.csv')
+def add_truth(df, source='icosari', disease='sari', target=False):
+    if target:
+        df_truth = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/main/data/{source}/{disease}/target-{source}-{disease}.csv')
+    else:
+        df_truth = pd.read_csv(f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/main/data/{source}/{disease}/latest_data-{source}-{disease}.csv')
+        
     df_truth = df_truth.rename(columns={'value': 'truth'})
 
     df = df.merge(df_truth, how='left', 
@@ -278,22 +282,23 @@ def add_truth(df, disease='influenza'):
     return df
 
 
-def load_predictions(disease='influenza', period='validation', include_median=True, include_truth=True):
-    files = glob.glob(f'../data/pre-covid/{period}*.csv') # TODO choose disease
+def load_predictions(period='post-covid', start='2023-12-14', end='2024-09-19', include_median=True, include_truth=True, target=True):
+    files = glob.glob(f'../data/{period}/submissions/**/*.csv', recursive=True)
+    files = [f for f in files if '/old/' not in f]
     
     dfs = []
     for file in files:
         df_temp = pd.read_csv(file)
-        df_temp['model'] = file.split('_')[-1][:-4]
+        df_temp['model'] = file.split('/')[-1].split('-', 5)[-1][:-4] 
         dfs.append(df_temp)
     df = pd.concat(dfs)
     
     if include_median:
         df = add_median(df)
     if include_truth:
-        df = add_truth(df, disease)
+        df = add_truth(df, source='icosari', disease='sari', target=target)
 
-    return df
+    return df[df.forecast_date.between(start, end)]
 
 
 def encode_static_covariates(ts, ordinal=False):
