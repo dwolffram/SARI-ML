@@ -268,3 +268,28 @@ def get_custom_weights(targets):
     )
     
     return ts_weights
+
+
+def exclude_covid_weights(targets):
+
+    exclusion_start = pd.Timestamp('2019-06-30')
+    exclusion_end = pd.Timestamp('2023-07-03')
+
+    # Linear weights for the entire time range
+    total_duration = len(targets.time_index)
+    weights = np.linspace(0, 1, total_duration)
+
+    # Adjust for exclusion period: Set weights to 0 during the exclusion period
+    weights = np.where(
+        (targets.time_index >= exclusion_start) & (targets.time_index <= exclusion_end),
+        0,  # Weight is 0 during the exclusion period
+        weights  # Linear increase otherwise
+    )
+
+    # Create TimeSeries object for weights
+    ts_weights = TimeSeries.from_times_and_values(
+        times=targets.time_index,
+        values=weights
+    )
+    
+    return ts_weights
