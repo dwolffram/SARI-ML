@@ -23,6 +23,14 @@ def compute_scores(df):
     df['score'] = df.apply(compute_row_score, axis=1)
     return df.drop(columns=['value', 'truth'])
 
+# def compute_scores(df):
+#     # Apply the scoring function row-wise and round the result to 5 digits
+#     df_scores = (
+#         df.assign(score=lambda x: x.apply(lambda row: round(score(row['value'], row['truth'], row['type'], row['quantile']), 5), axis=1))
+#           .drop(columns=['value', 'truth'])
+#     )
+#     return df_scores
+
 
 # Compute WIS decomposition
 def compute_wis(df):
@@ -71,9 +79,44 @@ def compute_coverage(df):
     return coverage_df
 
 
-def evaluate_models(df, level='national'):
+def evaluate_models(df, level='national', by_horizon=False, by_age=False):
     df_temp = filter_by_level(df, level)
-    wis_temp = compute_wis(df_temp)
-    coverage_temp = compute_coverage(df_temp)
+    if by_horizon:
+        wis_temp = df_temp.groupby('horizon')[df_temp.columns].apply(compute_wis).reset_index().drop(columns='level_1')
+        coverage_temp = df_temp.groupby('horizon')[df_temp.columns].apply(compute_coverage).reset_index().drop(columns='level_1')
+        results = wis_temp.merge(coverage_temp, on=['model', 'horizon']).sort_values(['horizon', 'wis'], ignore_index=True)
+    elif by_age:
+        wis_temp = df_temp.groupby('age_group')[df_temp.columns].apply(compute_wis).reset_index().drop(columns='level_1')
+        coverage_temp = df_temp.groupby('age_group')[df_temp.columns].apply(compute_coverage).reset_index().drop(columns='level_1')
+        results = wis_temp.merge(coverage_temp, on=['model', 'age_group']).sort_values(['age_group', 'wis'], ignore_index=True)        
+    else:
+        wis_temp = compute_wis(df_temp)
+        coverage_temp = compute_coverage(df_temp)
+        results = wis_temp.merge(coverage_temp, on='model').sort_values('wis', ignore_index=True)
     
-    return wis_temp.merge(coverage_temp, on='model').sort_values('wis', ignore_index=True)
+    return results
+
+
+# def filter_scores(df, type="quantile", level="national", by_horizon=False, average=True):
+#     # Filter by type
+#     df = df[df['type'] == type]
+
+#     # Filter by level
+#     if level == "national":
+#         df = df[(df['location'] == "DE") & (df['age_group'] == "00+")]
+#     elif level == "states":
+#         df = df[(df['location'] != "DE")]
+#     elif level == "age":
+#         df = df[(df['location'] == "DE") & (df['age_group'] != "00+")]
+                
+#     if by_horizon:
+#         if average:
+#             df = df.groupby(['model', 'horizon'], as_index=False).agg(score=('score', 'mean'))
+#             df = df.sort_values(by=['model', 'horizon'])
+#     else:
+#         if average:
+#             df = df.groupby(['model'], as_index=False).agg(score=('score', 'mean'))
+#         else:
+#             df = df.groupby(['model', 'location', 'age_group'], as_index=False).agg(score=('score', 'mean'))
+
+#     return df
