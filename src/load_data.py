@@ -282,7 +282,8 @@ def add_truth(df, source='icosari', disease='sari', target=False):
     return df
 
 
-def load_predictions(period='post-covid', start='2023-11-16', end='2024-09-19', include_median=True, include_truth=True, target=True):
+def load_predictions(models=None, period='post-covid', start='2023-11-16', end='2024-09-12', exclude_christmas=True,
+                     include_median=True, include_truth=True, target=True):
     files = glob.glob(f'../data/{period}/submissions/**/*.csv', recursive=True)
     files = [f for f in files if '/old/' not in f]
     
@@ -297,8 +298,39 @@ def load_predictions(period='post-covid', start='2023-11-16', end='2024-09-19', 
         df = add_median(df)
     if include_truth:
         df = add_truth(df, source='icosari', disease='sari', target=target)
+    if exclude_christmas:
+        df = df[df.forecast_date != '2023-12-28']
+        
+    df.model = df.model.replace(MODEL_NAMES)
+    
+    if models is None: 
+        models = MODEL_NAMES.values()
+    df = df[df.model.isin(models)]
 
-    return df[df.forecast_date.between(start, end)]
+    return df[df.forecast_date.between(start, end)].reset_index(drop=True)
+
+def load_nowcasts(start='2023-11-16', end='2024-09-12', include_truth=True, exclude_christmas=True, quantiles=None):
+    files = glob.glob(f'../data/nowcasts/KIT-baseline/*.csv') 
+
+    dfs = []
+    for file in files:
+        df_temp = pd.read_csv(file)
+        df_temp['model'] = 'Nowcast' # file[:-4].split('/')[-1].split('-', 5)[-1]
+        dfs.append(df_temp)
+    df = pd.concat(dfs)
+    
+    if exclude_christmas:
+        df = df[df.forecast_date != '2023-12-28']    
+        
+    df = df[df.forecast_date.between(start, end)].reset_index(drop=True)
+    
+    if include_truth:
+        df = add_truth(df, target=True)
+        
+    if quantiles is not None:
+        df = df[df['quantile'].isin(quantiles)]
+
+    return df
 
 
 def encode_static_covariates(ts, ordinal=False):
