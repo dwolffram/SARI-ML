@@ -2,6 +2,23 @@ import pandas as pd
 from epiweeks import Week
 from darts.metrics.metrics import mql
 
+MODEL_NAMES = {
+    'KIT-MeanEnsemble' : 'Ensemble',
+    'lightgbm': 'LightGBM',
+    'lightgbm_noCovariates': 'LightGBM-NoCovariates',
+    'lightgbm_noCovid': 'LightGBM-NoCovid',
+    'lightgbm_oracle': 'LightGBM-Oracle',
+    'tsmixer_covariates': 'TSMixer',
+    'tsmixer': 'TSMixer-NoCovariates',
+    'tsmixer_noCovid': 'TSMixer-NoCovid',
+    'tsmixer_oracle': 'TSMixer-Oracle',
+    'KIT-hhh4' : 'hhh4-NoCovid',
+    'KIT-hhh4_all_data': 'hhh4',
+    'KIT-baseline' : 'Nowcast',
+    'KIT-persistence': 'Baseline-Persistence',
+    'baseline' : 'Baseline-Historical'
+}
+
 # TRAIN_END        = pd.Timestamp('2018-09-30')
 # VALIDATION_START = pd.Timestamp('2018-10-07')
 # VALIDATION_END   = pd.Timestamp('2019-09-29')
