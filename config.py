@@ -15,8 +15,8 @@ MODEL_NAMES = {
     'KIT-hhh4' : 'hhh4-NoCovid',
     'KIT-hhh4_all_data': 'hhh4',
     'KIT-baseline' : 'Nowcast',
-    'KIT-persistence': 'Baseline-Persistence',
-    'baseline' : 'Baseline-Historical'
+    'KIT-persistence': 'Baseline-\nPersistence',
+    'baseline' : 'Baseline-\nHistorical'
 }
 
 # TRAIN_END        = pd.Timestamp('2018-09-30')
