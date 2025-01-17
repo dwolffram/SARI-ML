@@ -8,15 +8,19 @@ MODEL_NAMES = {
     'lightgbm_noCovariates': 'LightGBM-NoCovariates',
     'lightgbm_noCovid': 'LightGBM-NoCovid',
     'lightgbm_oracle': 'LightGBM-Oracle',
+    'lightgbm_skip' : 'LightGBM-Skip',
     'tsmixer_covariates': 'TSMixer',
     'tsmixer': 'TSMixer-NoCovariates',
     'tsmixer_noCovid': 'TSMixer-NoCovid',
     'tsmixer_oracle': 'TSMixer-Oracle',
+    'tsmixer_skip' : 'TSMixer-Skip',
     'KIT-hhh4' : 'hhh4-NoCovid',
     'KIT-hhh4_all_data': 'hhh4',
+    'KIT-hhh4_all_data_oracle' : 'hhh4-Oracle',
+    'KIT-hhh4_all_data_skip': 'hhh4-Skip',
     'KIT-baseline' : 'Nowcast',
-    'KIT-persistence': 'Baseline-\nPersistence',
-    'baseline' : 'Baseline-\nHistorical'
+    'KIT-persistence': 'Persistence',
+    'baseline' : 'Historical'
 }
 
 # TRAIN_END        = pd.Timestamp('2018-09-30')
