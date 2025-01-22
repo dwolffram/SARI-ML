@@ -43,7 +43,9 @@ def load_target_series(indicator='sari', as_of=None, age_group=None):
                                              freq='7D', fillna_value=0)
     ts_target = concatenate(retain_period_common_to_all(ts_target), axis=1) # all components start at the same time (SARI!)
     ts_target = ts_target.with_columns_renamed(ts_target.static_covariates.age_group.index, f'{source}-{indicator}-' + ts_target.static_covariates.age_group)
-    ts_target = ts_target.with_columns_renamed(f'{source}-{indicator}-00+', f'{source}-{indicator}-DE')
+    
+    if age_group is None or age_group=='00+':
+        ts_target = ts_target.with_columns_renamed(f'{source}-{indicator}-00+', f'{source}-{indicator}-DE')
     
     return ts_target
 
@@ -128,7 +130,7 @@ def get_preceding_thursday(date):
     return date - pd.Timedelta(days=(date.weekday() - 3)%7) # weekday of Thursday is 3
 
 
-def load_realtime_training_data(as_of=None):
+def load_realtime_training_data(as_of=None, drop_incomplete=True):
     # load sari data
     target_sari = load_target_series('sari', as_of)
     latest_sari = load_latest_series('sari')
@@ -143,7 +145,11 @@ def load_realtime_training_data(as_of=None):
     ts_are = concatenate([latest_are.drop_after(target_are.start_time()), 
                           target_are])
     
-    return ts_sari[:-4], ts_are[:-4] # only use complete data points
+    if drop_incomplete:
+        return ts_sari[:-4], ts_are[:-4] # only use complete data points
+    
+    else:
+        return ts_sari, ts_are
 
 
 def compute_forecast(model, target_series, covariates, forecast_date, horizon, num_samples, vincentization=True, probabilistic_nowcast=True, local=False):
