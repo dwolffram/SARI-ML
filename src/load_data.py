@@ -310,7 +310,7 @@ def load_predictions(models=None, period='post-covid', start='2023-11-16', end='
     return df[df.forecast_date.between(start, end)].reset_index(drop=True)
 
 def load_nowcasts(start='2023-11-16', end='2024-09-12', include_truth=True, exclude_christmas=True, quantiles=None):
-    files = glob.glob(f'../data/nowcasts/KIT-baseline/*.csv') 
+    files = glob.glob(f'../data/nowcasts/KIT-simple_nowcast/*.csv') 
 
     dfs = []
     for file in files:

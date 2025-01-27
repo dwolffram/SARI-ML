@@ -54,7 +54,7 @@ def load_nowcast(forecast_date, probabilistic=True, indicator='sari', local=True
     source = SOURCE_DICT[indicator]
     
     if local:
-        filepath = f'{"../data/nowcasts/KIT-baseline" if indicator == "sari" else "../ari/nowcasts/"}/{forecast_date}-{source}-{indicator}-KIT-baseline.csv'
+        filepath = f'{"../data/nowcasts/KIT-simple_nowcast" if indicator == "sari" else "../ari/nowcasts/"}/{forecast_date}-{source}-{indicator}-KIT-simple_nowcast.csv'
     else:
         filepath = f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/submissions/{source}/{indicator}/KIT-simple_nowcast/{forecast_date}-{source}-{indicator}-KIT-simple_nowcast.csv'
     df = pd.read_csv(filepath)
