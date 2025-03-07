@@ -50,13 +50,13 @@ def load_target_series(indicator='sari', as_of=None, age_group=None):
     return ts_target
 
 
-def load_nowcast(forecast_date, probabilistic=True, indicator='sari', local=True):
+def load_nowcast(forecast_date, probabilistic=True, indicator='sari', local=True, model='simple_nowcast'):
     source = SOURCE_DICT[indicator]
     
     if local:
-        filepath = f'{"../data/nowcasts/KIT-simple_nowcast" if indicator == "sari" else "../ari/nowcasts/"}/{forecast_date}-{source}-{indicator}-KIT-simple_nowcast.csv'
+        filepath = f'{f"../data/nowcasts/KIT-{model}" if indicator == "sari" else "../ari/nowcasts/"}/{forecast_date}-{source}-{indicator}-KIT-{model}.csv'
     else:
-        filepath = f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/submissions/{source}/{indicator}/KIT-simple_nowcast/{forecast_date}-{source}-{indicator}-KIT-simple_nowcast.csv'
+        filepath = f'https://raw.githubusercontent.com/KITmetricslab/RESPINOW-Hub/refs/heads/main/submissions/{source}/{indicator}/KIT-{model}/{forecast_date}-{source}-{indicator}-KIT-{model}.csv'
     df = pd.read_csv(filepath)
     df = df[(df.location == 'DE') & (df.type == 'quantile') & (df.horizon >= -3)]
     df = df.rename(columns={'target_end_date' : 'date'})
@@ -152,13 +152,13 @@ def load_realtime_training_data(as_of=None, drop_incomplete=True):
         return ts_sari, ts_are
 
 
-def compute_forecast(model, target_series, covariates, forecast_date, horizon, num_samples, vincentization=True, probabilistic_nowcast=True, local=False):
+def compute_forecast(model, target_series, covariates, forecast_date, horizon, num_samples, vincentization=True, probabilistic_nowcast=True, local=False, nowcast_model='simple_nowcast'):
     '''
     For every sample path given by the nowcasted quantiles, a probabilistic forecast is computed.
     These are then aggregated into one forecast by combining all predicted paths.
     '''
     indicator = target_series.components[0].split('-')[1]
-    ts_nowcast = load_nowcast(forecast_date, probabilistic_nowcast, indicator, local)
+    ts_nowcast = load_nowcast(forecast_date, probabilistic_nowcast, indicator, local, nowcast_model)
     target_list = make_target_paths(target_series, ts_nowcast)
     target_list = [encode_static_covariates(t, ordinal=False) for t in target_list]
      
