@@ -52,7 +52,7 @@ forecast_dates <- seq(from = as.Date("2025-03-27"),
 
 # Select most recent Thursday as forecast_date:
 #forecast_dates0 <- Sys.Date() - 0:6
-forecast_dates <- forecast_dates0[weekdays(forecast_dates0) == "Thursday"]
+#forecast_dates <- forecast_dates0[weekdays(forecast_dates0) == "Thursday"]
 
 # set the sizes of training data sets
 # limited by number of observations (in the early part, not relevant anymore)
