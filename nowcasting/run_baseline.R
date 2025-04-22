@@ -46,12 +46,12 @@ borrow_dispersion <- list("icosari" = TRUE,
 
 # dates for which to produce nowcasts:
 # for retrospective generation:
-forecast_dates <- seq(from = as.Date("2023-11-16"),
-                      to = as.Date("2024-10-03"),
+forecast_dates <- seq(from = as.Date("2025-03-27"),
+                      to = as.Date("2025-03-27"),
                       by = 7)
 
 # Select most recent Thursday as forecast_date:
-forecast_dates0 <- Sys.Date() - 0:6
+#forecast_dates0 <- Sys.Date() - 0:6
 forecast_dates <- forecast_dates0[weekdays(forecast_dates0) == "Thursday"]
 
 # set the sizes of training data sets
