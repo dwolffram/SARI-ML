@@ -21,7 +21,8 @@ if(run_individually){
 }
 
 # define data sources:
-data_sources <- c("icosari", "agi")
+data_sources <- c(#"icosari", 
+                  "agi")
 
 # diseases per data source.
 all_diseases <- list("icosari" = c("sari"),
@@ -46,7 +47,7 @@ borrow_dispersion <- list("icosari" = TRUE,
 
 # dates for which to produce nowcasts:
 # for retrospective generation:
-forecast_dates <- seq(from = as.Date("2025-03-27"),
+forecast_dates <- seq(from = as.Date("2024-10-17"),
                       to = as.Date("2025-03-27"),
                       by = 7)
 
