@@ -21,7 +21,7 @@ if(run_individually){
 }
 
 # define data sources:
-data_sources <- c("icosari", 
+data_sources <- c("icosari")#, 
                   #"agi")
 
 # diseases per data source.
