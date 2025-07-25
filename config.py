@@ -25,7 +25,9 @@ MODEL_NAMES = {
     'KIT-hhh4_all_data_naive': 'hhh4-Uncorrected',
     'KIT-simple_nowcast' : 'Nowcast',
     'KIT-persistence': 'Persistence',
-    'baseline' : 'Historical'
+    'baseline' : 'Historical',
+    'KIT-tscount_negbin_seas': 'TSCount-NB-S',
+    'KIT-tscount_pois': 'TSCount-Pois',
 }
 
 # TRAIN_END        = pd.Timestamp('2018-09-30')
@@ -58,7 +60,9 @@ SOURCES = [
 
 SOURCE_DICT = {
     'sari' : 'icosari',
-    'are' : 'agi'
+    'are' : 'agi',
+    'influenza': 'survstat',
+    'rsv': 'survstat'
 }
 
 QUANTILES = [0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975]

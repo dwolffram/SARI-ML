@@ -79,21 +79,44 @@ def compute_coverage(df):
     return coverage_df
 
 
+def compute_ae(df):
+    df_ae = df[df['type'] == 'median'].copy()
+    df_ae['ae'] = abs(df_ae.value - df_ae.truth)
+    return df_ae.groupby('model').agg({'ae': 'mean'}).reset_index()
+
+
 def evaluate_models(df, level='national', by_horizon=False, by_age=False):
     df_temp = filter_by_level(df, level)
     if by_horizon:
         wis_temp = df_temp.groupby('horizon')[df_temp.columns].apply(compute_wis).reset_index().drop(columns='level_1')
+        ae_temp = df_temp.groupby('horizon')[df_temp.columns].apply(compute_ae).reset_index().drop(columns='level_1')
         coverage_temp = df_temp.groupby('horizon')[df_temp.columns].apply(compute_coverage).reset_index().drop(columns='level_1')
-        results = wis_temp.merge(coverage_temp, on=['model', 'horizon']).sort_values(['horizon', 'wis'], ignore_index=True)
+        results = (
+            wis_temp
+            .merge(ae_temp, on=['model', 'horizon'])
+            .merge(coverage_temp, on=['model', 'horizon'])
+            .sort_values(['horizon', 'wis'], ignore_index=True)
+        )
     elif by_age:
         wis_temp = df_temp.groupby('age_group')[df_temp.columns].apply(compute_wis).reset_index().drop(columns='level_1')
+        ae_temp = df_temp.groupby('age_group')[df_temp.columns].apply(compute_ae).reset_index().drop(columns='level_1')
         coverage_temp = df_temp.groupby('age_group')[df_temp.columns].apply(compute_coverage).reset_index().drop(columns='level_1')
-        results = wis_temp.merge(coverage_temp, on=['model', 'age_group']).sort_values(['age_group', 'wis'], ignore_index=True)        
+        results = (
+            wis_temp
+            .merge(ae_temp, on=['model', 'age_group'])
+            .merge(coverage_temp, on=['model', 'age_group'])
+            .sort_values(['age_group', 'wis'], ignore_index=True)
+        )
     else:
         wis_temp = compute_wis(df_temp)
+        ae_temp = compute_ae(df_temp)
         coverage_temp = compute_coverage(df_temp)
-        results = wis_temp.merge(coverage_temp, on='model').sort_values('wis', ignore_index=True)
-    
+        results = (
+            wis_temp
+            .merge(ae_temp, on='model')
+            .merge(coverage_temp, on='model')
+            .sort_values('wis', ignore_index=True)
+        )    
     return results
 
 
